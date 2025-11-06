@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>DÖF Takip Paneli</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fb;
+    }
+    header {
+      background: #1e3a8a;
+      color: #fff;
+      padding: 1.5rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .container {
+      padding: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      color: #1f2937;
+    }
+    .grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1f2937;
+    }
+    input[type="text"],
+    input[type="date"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s ease;
+      background: #fff;
+    }
+    textarea {
+      min-height: 80px;
+    }
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #2563eb;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      background: #2563eb;
+      color: #fff;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    button.secondary {
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+    button.danger {
+      background: #dc2626;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+    }
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    th {
+      white-space: nowrap;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      background: #f8fafc;
+    }
+    tr:hover td {
+      background: #f9fafb;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge.open {
+      background: rgba(37, 99, 235, 0.15);
+      color: #1d4ed8;
+    }
+    .badge.in_progress {
+      background: rgba(251, 191, 36, 0.2);
+      color: #b45309;
+    }
+    .badge.closed {
+      background: rgba(34, 197, 94, 0.2);
+      color: #047857;
+    }
+    .badge.cancelled {
+      background: rgba(239, 68, 68, 0.2);
+      color: #b91c1c;
+    }
+    .status-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .token-input {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .stat-card {
+      flex: 1;
+      min-width: 160px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
+    }
+    .stat-card span {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+    .stat-card strong {
+      font-size: 1.6rem;
+      line-height: 1.2;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Düzeltici Önleyici Faaliyet (DÖF) Takip Sistemi</h1>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>API Bağlantısı</h2>
+      <div class="grid grid-2">
+        <div>
+          <label for="apiUrl">API URL</label>
+          <input type="text" id="apiUrl" placeholder="https://sunucu-adresi/api" value="http://localhost:8001/api">
+        </div>
+        <div>
+          <label for="token">Bearer Token</label>
+          <input type="text" id="token" placeholder="JWT token">
+        </div>
+      </div>
+      <div style="margin-top: 0.75rem;">
+        <button id="connectBtn">Bağlantıyı Kaydet</button>
+        <span class="muted">Token girmeniz, listeleri görüntüleyebilmek için gereklidir.</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Filtreler</h2>
+      <div class="grid grid-2">
+        <div>
+          <label for="filterDepartment">Departman</label>
+          <select id="filterDepartment">
+            <option value="">Tümü</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterStatus">Durum</label>
+          <select id="filterStatus">
+            <option value="">Tümü</option>
+            <option value="open">Açık</option>
+            <option value="in_progress">Devam Ediyor</option>
+            <option value="closed">Kapandı</option>
+            <option value="cancelled">İptal</option>
+          </select>
+        </div>
+        <div>
+          <label for="searchInput">Arama</label>
+          <input type="text" id="searchInput" placeholder="Başlık, sorumlu, numara...">
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+          <button id="filterBtn">Filtrele</button>
+          <button id="clearFiltersBtn" class="secondary">Temizle</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Yeni DÖF Oluştur</h2>
+      <form id="createForm">
+        <div class="grid grid-2">
+          <div>
+            <label for="title">Başlık</label>
+            <input type="text" id="title" required>
+          </div>
+          <div>
+            <label for="department">Departman</label>
+            <select id="department" required>
+              <option value="">Seçiniz</option>
+            </select>
+          </div>
+          <div>
+            <label for="responsiblePerson">Sorumlu Kişi</label>
+            <input type="text" id="responsiblePerson" required>
+          </div>
+          <div>
+            <label for="dueDate">Hedef Tarih</label>
+            <input type="date" id="dueDate" required>
+          </div>
+        </div>
+        <div style="margin-top: 1rem;">
+          <label for="description">Açıklama</label>
+          <textarea id="description" placeholder="Faaliyet detayını giriniz"></textarea>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button type="submit">DÖF Kaydet</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Özet İstatistikler</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card">
+      <h2>DÖF Listesi</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>DÖF No</th>
+              <th>Başlık</th>
+              <th>Departman</th>
+              <th>Sorumlu</th>
+              <th>Hedef Tarih</th>
+              <th>Durum</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="tasksTableBody">
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <template id="taskRowTemplate">
+    <tr>
+      <td class="dof-no"></td>
+      <td>
+        <div class="title"></div>
+        <div class="muted description"></div>
+      </td>
+      <td class="department"></td>
+      <td class="responsible"></td>
+      <td class="due-date"></td>
+      <td><span class="badge status-badge"></span></td>
+      <td>
+        <div class="status-actions">
+          <button data-status="open" class="secondary small">Açık</button>
+          <button data-status="in_progress" class="secondary small">Devam</button>
+          <button data-status="closed" class="secondary small">Kapat</button>
+          <button data-status="cancelled" class="secondary small danger">İptal</button>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <script>
+    const state = {
+      apiBase: 'http://localhost:8001/api',
+      token: '',
+      filters: {
+        department: '',
+        status: '',
+        search: ''
+      }
+    };
+
+    const dom = {
+      apiUrl: document.getElementById('apiUrl'),
+      token: document.getElementById('token'),
+      connectBtn: document.getElementById('connectBtn'),
+      filterDepartment: document.getElementById('filterDepartment'),
+      filterStatus: document.getElementById('filterStatus'),
+      searchInput: document.getElementById('searchInput'),
+      filterBtn: document.getElementById('filterBtn'),
+      clearFiltersBtn: document.getElementById('clearFiltersBtn'),
+      departmentSelect: document.getElementById('department'),
+      createForm: document.getElementById('createForm'),
+      tasksTableBody: document.getElementById('tasksTableBody'),
+      taskRowTemplate: document.getElementById('taskRowTemplate'),
+      stats: document.getElementById('stats')
+    };
+
+    const statusLabels = {
+      open: 'Açık',
+      in_progress: 'Devam Ediyor',
+      closed: 'Kapandı',
+      cancelled: 'İptal'
+    };
+
+    function getHeaders() {
+      if (!state.token) {
+        throw new Error('Lütfen önce geçerli bir token giriniz.');
+      }
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + state.token
+      };
+    }
+
+    async function fetchJSON(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          ...getHeaders()
+        }
+      });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || 'İstek başarısız oldu');
+      }
+      return response.json();
+    }
+
+    function storeConnection() {
+      state.apiBase = dom.apiUrl.value.trim().replace(/\/$/, '');
+      state.token = dom.token.value.trim();
+      localStorage.setItem('dof_api_base', state.apiBase);
+      localStorage.setItem('dof_token', state.token);
+      alert('Bağlantı bilgileri güncellendi.');
+    }
+
+    function loadConnection() {
+      const savedApi = localStorage.getItem('dof_api_base');
+      const savedToken = localStorage.getItem('dof_token');
+      if (savedApi) {
+        state.apiBase = savedApi;
+        dom.apiUrl.value = savedApi;
+      }
+      if (savedToken) {
+        state.token = savedToken;
+        dom.token.value = savedToken;
+      }
+    }
+
+    async function loadDepartments() {
+      try {
+        const departments = await fetchJSON(state.apiBase + '/dof-tasks/departments');
+        const targets = [dom.departmentSelect, dom.filterDepartment];
+        targets.forEach(select => {
+          const currentValue = select.value;
+          select.innerHTML = select === dom.filterDepartment ? '<option value="">Tümü</option>' : '<option value="">Seçiniz</option>';
+          departments.forEach(dep => {
+            const option = document.createElement('option');
+            option.value = dep;
+            option.textContent = dep;
+            select.appendChild(option);
+          });
+          if (currentValue && departments.includes(currentValue)) {
+            select.value = currentValue;
+          }
+        });
+      } catch (error) {
+        console.error('Departman listesi alınamadı', error);
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const url = new URL(state.apiBase + '/dof-tasks/report/summary');
+        if (state.filters.department) url.searchParams.set('department', state.filters.department);
+        if (state.filters.status) url.searchParams.set('status', state.filters.status);
+        const data = await fetchJSON(url.href);
+
+        dom.stats.innerHTML = '';
+        const cards = [
+          { label: 'Toplam DÖF', value: data.total },
+          { label: 'Geciken', value: data.overdue },
+          { label: 'Yaklaşan', value: data.upcoming_deadlines.length },
+          { label: 'Açık Durum', value: data.status_counts.open || 0 }
+        ];
+
+        cards.forEach(card => {
+          const div = document.createElement('div');
+          div.className = 'stat-card';
+          div.innerHTML = `<span>${card.label}</span><strong>${card.value}</strong>`;
+          dom.stats.appendChild(div);
+        });
+      } catch (error) {
+        console.warn('İstatistik verisi alınamadı', error);
+      }
+    }
+
+    function renderTasks(items) {
+      dom.tasksTableBody.innerHTML = '';
+      items.forEach(item => {
+        const row = dom.taskRowTemplate.content.firstElementChild.cloneNode(true);
+        row.dataset.id = item.id;
+        row.querySelector('.dof-no').textContent = item.dof_no;
+        row.querySelector('.title').textContent = item.title;
+        row.querySelector('.description').textContent = item.description || '';
+        row.querySelector('.department').textContent = item.department;
+        row.querySelector('.responsible').textContent = item.responsible_person;
+        row.querySelector('.due-date').textContent = new Date(item.due_date).toLocaleDateString();
+        const badge = row.querySelector('.status-badge');
+        badge.textContent = statusLabels[item.status] || item.status;
+        badge.classList.add('badge', item.status);
+        row.querySelectorAll('button[data-status]').forEach(btn => {
+          btn.addEventListener('click', () => changeStatus(item.id, btn.dataset.status));
+        });
+        dom.tasksTableBody.appendChild(row);
+      });
+    }
+
+    async function loadTasks() {
+      try {
+        const url = new URL(state.apiBase + '/dof-tasks');
+        if (state.filters.department) url.searchParams.set('department', state.filters.department);
+        if (state.filters.status) url.searchParams.set('status', state.filters.status);
+        if (state.filters.search) url.searchParams.set('search', state.filters.search);
+        const data = await fetchJSON(url.href);
+        renderTasks(data.items);
+        await loadStats();
+      } catch (error) {
+        alert('DÖF listesi çekilirken sorun oluştu: ' + error.message);
+      }
+    }
+
+    async function changeStatus(id, status) {
+      if (!confirm('Durumu ' + statusLabels[status] + ' olarak güncellemek istediğinize emin misiniz?')) {
+        return;
+      }
+      try {
+        await fetchJSON(state.apiBase + '/dof-tasks/' + id + '/status', {
+          method: 'PATCH',
+          body: JSON.stringify({ status })
+        });
+        await loadTasks();
+      } catch (error) {
+        alert('Durum güncellenemedi: ' + error.message);
+      }
+    }
+
+    dom.connectBtn.addEventListener('click', () => {
+      try {
+        storeConnection();
+        loadTasks();
+        loadDepartments();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    dom.filterBtn.addEventListener('click', () => {
+      state.filters.department = dom.filterDepartment.value;
+      state.filters.status = dom.filterStatus.value;
+      state.filters.search = dom.searchInput.value.trim();
+      loadTasks();
+    });
+
+    dom.clearFiltersBtn.addEventListener('click', () => {
+      dom.filterDepartment.value = '';
+      dom.filterStatus.value = '';
+      dom.searchInput.value = '';
+      state.filters = { department: '', status: '', search: '' };
+      loadTasks();
+    });
+
+    dom.createForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const payload = {
+        title: form.querySelector('#title').value.trim(),
+        description: form.querySelector('#description').value.trim(),
+        department: form.querySelector('#department').value,
+        responsible_person: form.querySelector('#responsiblePerson').value.trim(),
+        due_date: new Date(form.querySelector('#dueDate').value + 'T00:00:00').toISOString()
+      };
+      try {
+        await fetchJSON(state.apiBase + '/dof-tasks', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        form.reset();
+        await loadTasks();
+        alert('DÖF başarıyla oluşturuldu.');
+      } catch (error) {
+        alert('DÖF kaydedilemedi: ' + error.message);
+      }
+    });
+
+    loadConnection();
+    if (state.token) {
+      loadDepartments();
+      loadTasks();
+    }
+  </script>
+</body>
+</html>
