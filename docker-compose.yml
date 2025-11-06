@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: emergent-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: emergent_admin
+      MONGO_INITDB_ROOT_PASSWORD: emergent_admin_pass
+      MONGO_INITDB_DATABASE: emergent
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+  backend:
+    build: ./backend
+    container_name: emergent-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      MONGO_URL: mongodb://emergent_user:emergent_pass@mongo:27017/emergent?authSource=admin
+    depends_on:
+      - mongo
+    ports:
+      - "8001:8001"
+
+volumes:
+  mongo_data:
